@@ -27,7 +27,7 @@ This plan is designed to be abandoned mid-flight and picked back up cold.
 |---|---|---|---|
 | 0 — Foundation | 3 | 2 | Docs approved |
 | 1 — Deploy skeleton | 2 | 0 | **Live URL exists** |
-| 2 — Single player | 12 | 4 | **Playable game live** |
+| 2 — Single player | 12 | 5 | **Playable game live** |
 | 3 — Multiplayer | 11 | 0 | **Rooms live** |
 | 4 — Stretch | 4 | 0 | — |
 
@@ -182,12 +182,21 @@ sits on. Build them first and build them properly.
   **Measured cost:** worst case **6.9 ms** for a full 45-second wave. The DO can
   resolve a wave in one invocation with room to spare.
 
-### [ ] T2.5 — Canvas rendering
+### [x] T2.5 — Canvas rendering
 * **Depends on:** T2.4, **T0.3**
 * **Files:** `public/js/render/canvas.js`, `public/js/render/sprites.js`, `public/css/game.css`
 * **Do:** The draw loop, playing back a timeline in real time. Grid, blocks by type, Core,
   ball, paddle, gutters. Responsive scaling to viewport.
-* **Done when:** A simulated wave plays back smoothly at 60 fps and looks like block breaker.
+* **Done when:** A simulated wave plays back smoothly at 60 fps and looks like block breaker. ✅
+* **Notes:** Built **without** the Figma file (T0.3 still blocked on a URL), so every
+  colour is isolated in `render/palette.js` — that one module is what T0.3 rewrites,
+  and no draw call anywhere contains a colour literal.
+  Design rule: **your things glow cool, the enemy runs hot.** The paddle is the only
+  warm-red element on the field, so the thing trying to kill you is what your eye finds
+  first. Gutters are tinted and dashed because they are the win condition and a player
+  who cannot see them cannot aim at them.
+  `render/` is exempt from the determinism contract — it may use `Math.random` and the
+  clock freely, and does, for particles and screen shake.
 
 ### [ ] T2.6 — Build phase UI
 * **Depends on:** T2.5

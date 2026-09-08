@@ -27,7 +27,7 @@ This plan is designed to be abandoned mid-flight and picked back up cold.
 |---|---|---|---|
 | 0 — Foundation | 3 | 2 | Docs approved |
 | 1 — Deploy skeleton | 2 | 0 | **Live URL exists** |
-| 2 — Single player | 12 | 5 | **Playable game live** |
+| 2 — Single player | 12 | 8 | **Playable game live** |
 | 3 — Multiplayer | 11 | 0 | **Rooms live** |
 | 4 — Stretch | 4 | 0 | — |
 
@@ -198,28 +198,38 @@ sits on. Build them first and build them properly.
   `render/` is exempt from the determinism contract — it may use `Math.random` and the
   clock freely, and does, for particles and screen shake.
 
-### [ ] T2.6 — Build phase UI
+### [x] T2.6 — Build phase UI
 * **Depends on:** T2.5
 * **Files:** `public/js/render/hud.js`, `public/js/screens/game.js`
 * **Do:** Block palette with costs, select-and-place, ghost preview on hover, Deflector
   rotation (`R` or right-click), sell, invalid-placement feedback, Shard balance.
 * **Done when:** A player can place, rotate and sell every block type with mouse and
-  keyboard, and cannot place illegally.
+  keyboard, and cannot place illegally. ✅
+* **Notes:** Built together with T2.7 and T2.8 — the build UI, the phase machine and
+  the escalation curve are not separable in practice. One PR covers all three.
 
-### [ ] T2.7 — Phase state machine and economy
+### [x] T2.7 — Phase state machine and economy
 * **Depends on:** T2.6
 * **Files:** `public/js/screens/game.js`, `public/js/engine/economy.js`
 * **Do:** Build → Wave → Resolve cycling. Build timer with skip. Shard awards per
   ProductSpec §5. Generator payouts.
 * **Done when:** Waves cycle indefinitely, Shard totals match the spec exactly, and the
-  timer/skip both work.
+  timer/skip both work. ✅
+* **Notes:** `game/session.js` takes time only through `update(dt)` and never reads a
+  clock, so it is testable headlessly — and it is the shape the Durable Object needs in
+  T3.7, where alarms rather than animation frames drive the same transitions.
 
-### [ ] T2.8 — Escalation, win and loss
+### [x] T2.8 — Escalation, win and loss
 * **Depends on:** T2.7
 * **Files:** `public/js/engine/constants.js`, `public/js/screens/game.js`
 * **Do:** The wave table from ProductSpec §6. Core destruction → game over. Surviving
   wave 20 → win.
-* **Done when:** A full run can be lost *and* won, and both end on the Results screen.
+* **Done when:** A full run can be lost *and* won, and both end on the Results screen. ✅
+* **Notes:** 172 tests. Verified a complete run in the browser end to end: build,
+  place, ready, wave, resolve, escalate, Core destroyed, Results.
+  **Balance finding for T2.11:** a near-passive run (three blocks, auto-ready every
+  wave) still reached **wave 13 of 20** and finished with **660 unspent Shards**. Doing
+  almost nothing should not get that far, and the purse should not pile up unspent.
 
 ### [ ] T2.9 — Title, Game and Results screens
 * **Depends on:** T2.8, **T0.3**

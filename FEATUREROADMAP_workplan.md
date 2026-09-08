@@ -27,7 +27,7 @@ This plan is designed to be abandoned mid-flight and picked back up cold.
 |---|---|---|---|
 | 0 — Foundation | 3 | 2 | Docs approved |
 | 1 — Deploy skeleton | 2 | 0 | **Live URL exists** |
-| 2 — Single player | 12 | 8 | **Playable game live** |
+| 2 — Single player | 12 | 10 | **Playable game live** |
 | 3 — Multiplayer | 11 | 0 | **Rooms live** |
 | 4 — Stretch | 4 | 0 | — |
 
@@ -231,19 +231,31 @@ sits on. Build them first and build them properly.
   wave) still reached **wave 13 of 20** and finished with **660 unspent Shards**. Doing
   almost nothing should not get that far, and the purse should not pile up unspent.
 
-### [ ] T2.9 — Title, Game and Results screens
+### [x] T2.9 — Title, Game and Results screens
 * **Depends on:** T2.8, **T0.3**
 * **Files:** `public/index.html`, `public/js/screens/*`, `public/css/*`
 * **Do:** All screens per the reconciled ProductSpec §8. Section toggling, no router.
   Attract-mode board on the title screen.
 * **Done when:** Title → Game → Results → Title works end to end and matches Figma.
+  ✅ *(flow works end to end; the Figma half is still outstanding — see T0.3)*
+* **Notes:** Attract mode runs the **real engine** on a showcase board behind the
+  wordmark, not a canned animation, so a new player watches actual balls drop down
+  actual gutters. The board is built to demonstrate the two-stage funnel.
 
-### [ ] T2.10 — Audio and game feel
+### [x] T2.10 — Audio and game feel
 * **Depends on:** T2.9
 * **Files:** `public/js/render/fx.js`, `public/audio/*`
 * **Do:** WebAudio blips for bounce, break, bomb, gutter kill, core hit. Screen shake on
   Core damage, particles on block destruction, a satisfying gutter-kill flourish. Mute toggle.
-* **Done when:** The game feels good to lose at. Audio can be muted and the setting sticks.
+* **Done when:** The game feels good to lose at. Audio can be muted and the setting sticks. ✅
+* **Notes:** Every sound is synthesised with WebAudio — no audio files, so the whole
+  game stays a handful of text assets with no binary payload and nothing to 404.
+  Sound design follows the economy: the gutter kill is a **rising** arpeggio (the thing
+  you want), a Core hit is a **falling** dissonant tone (the thing you don't).
+  Impact sounds are capped per frame — a bomb chain emits a dozen destructions in one
+  step and a dozen overlapping noise bursts is just a click.
+  Mute persists in `localStorage`, wrapped in try/catch for private browsing, and is
+  also bound to `M`.
 
 ### [ ] T2.11 — Balance pass
 * **Depends on:** T2.10

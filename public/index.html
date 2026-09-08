@@ -12,6 +12,7 @@
 
 <!-- ─── Title ─────────────────────────────────────────────────────────────── -->
 <section class="screen is-active" id="screen-title">
+  <canvas id="attract" aria-hidden="true"></canvas>
   <div class="title-stack">
     <h1 class="wordmark">BLOCK<span>UNBREAKER</span></h1>
     <p class="tagline">Block breaker, played from the wrong side.</p>
@@ -81,6 +82,7 @@
       </div>
 
       <button class="btn btn-primary btn-block" id="btn-ready">Ready</button>
+      <button class="btn btn-ghost btn-block btn-mute" id="btn-mute" aria-pressed="false">Sound on</button>
 
       <ul class="feed" id="hud-feed" aria-live="polite"></ul>
     </aside>

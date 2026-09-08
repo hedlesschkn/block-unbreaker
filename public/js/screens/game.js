@@ -15,6 +15,7 @@ import { GRID, ROTATIONS, BLOCKS, ECONOMY } from "../engine/constants.js";
 import { getCell, BLOCK_DEFS } from "../engine/board.js";
 import { createRenderer } from "../render/canvas.js";
 import { createHud } from "../render/hud.js";
+import { createAudio } from "../render/audio.js";
 import { PALETTE } from "../render/palette.js";
 import { createSession, PHASE, STATUS } from "../game/session.js";
 import { EVENT } from "../engine/physics.js";
@@ -23,6 +24,7 @@ import { OUTCOME } from "../engine/simulate.js";
 export function createGameScreen(root, { onFinished }) {
   const canvas = root.querySelector("#field");
   const renderer = createRenderer(canvas);
+  const audio = createAudio();
 
   let session = null;
   let hud = null;
@@ -58,13 +60,16 @@ export function createGameScreen(root, { onFinished }) {
     if (existing !== null && BLOCK_DEFS[existing.type].rotatable === true) {
       session.cycleRotation(cell.col, cell.row);
       renderer.burst(cell.col, cell.row, PALETTE.blocks.DEFLECTOR.top, 5, 0.6);
+      audio.place();
       return;
     }
 
     const result = session.place(hud.selected, cell.col, cell.row, pendingRotation);
     if (result.ok) {
       renderer.burst(cell.col, cell.row, PALETTE.blocks[hud.selected].top, 7, 0.7);
+      audio.place();
     } else {
+      audio.denied();
       explainRefusal(result.reason);
     }
   });
@@ -78,6 +83,7 @@ export function createGameScreen(root, { onFinished }) {
     if (result.ok) {
       hud.log(`Sold for ${result.refund}`, "is-gold");
       renderer.burst(cell.col, cell.row, PALETTE.spark, 6, 0.6);
+      audio.sell();
     }
   });
 
@@ -103,6 +109,13 @@ export function createGameScreen(root, { onFinished }) {
       pendingRotation = ROTATIONS[(ROTATIONS.indexOf(pendingRotation) + 1) % ROTATIONS.length];
       return;
     }
+    if (event.key === "m" || event.key === "M") {
+      audio.toggle();
+      const mute = root.querySelector("#btn-mute");
+      mute.textContent = audio.muted ? "Sound off" : "Sound on";
+      mute.setAttribute("aria-pressed", String(audio.muted));
+      return;
+    }
     if (event.code === "Space") {
       event.preventDefault();
       if (session.phase === PHASE.BUILD) startWave();
@@ -112,24 +125,44 @@ export function createGameScreen(root, { onFinished }) {
   // ── Wave events → sound, sparks, shake, feed ─────────────────────────────
 
   function reactTo(events) {
+    // Impact sounds are capped per frame: a bomb chain can emit a dozen destructions
+    // in one step, and firing a dozen overlapping noise bursts is just a click.
+    let breaks = 0;
+    let bounces = 0;
+
     for (const event of events) {
       switch (event.type) {
+        case EVENT.BLOCK_HIT:
+          if (bounces++ === 0) audio.bounce();
+          break;
+        case EVENT.WALL_BOUNCE:
+          if (bounces++ === 0) audio.wallBounce();
+          break;
+        case EVENT.PADDLE_HIT:
+          audio.paddleHit();
+          break;
         case EVENT.BLOCK_DESTROYED:
           renderer.burst(event.col, event.row, PALETTE.blocks[event.blockType]?.top ?? PALETTE.spark, 12, 1.1);
+          if (breaks++ === 0) audio.blockBreak();
           break;
         case EVENT.CORE_HIT:
           renderer.shakeScreen(0.5);
           coreFlash = 1;
+          audio.coreHit();
           break;
         case EVENT.BOMB_DETONATED:
           renderer.burst(event.col, event.row, PALETTE.spark, 26, 2.1);
           renderer.shakeScreen(0.65);
+          audio.bomb();
           break;
         case EVENT.BALL_EXITED:
           hud.log(`Gutter kill  +${ECONOMY.GUTTER_KILL}`, "is-good");
+          audio.gutterKill();
+          renderer.shakeScreen(0.12);
           break;
         case EVENT.BALL_ABSORBED:
           hud.log(`Ball absorbed  +${ECONOMY.ABSORB_KILL}`, "is-gold");
+          audio.absorb();
           break;
         default:
           break;
@@ -139,6 +172,8 @@ export function createGameScreen(root, { onFinished }) {
 
   function startWave() {
     if (!session.ready()) return;
+    audio.unlock();
+    audio.waveStart();
     renderer.clearTrails();
     hud.hideBanner();
     hud.banner(`Wave ${session.wave}`, "Hold the Core", false, 1400);
@@ -150,6 +185,7 @@ export function createGameScreen(root, { onFinished }) {
       hud.log("Wave timed out — no bounty", "");
     } else if (result.outcome === OUTCOME.CLEARED) {
       hud.banner("Wave cleared", `+${result.score.total} Shards`, false, 2200);
+      audio.waveCleared();
     }
     if (result.score.total > 0) hud.log(`Wave paid ${result.score.total}`, "is-gold");
   }
@@ -169,6 +205,8 @@ export function createGameScreen(root, { onFinished }) {
       const result = session.lastResult;
       if (session.over) {
         running = false;
+        if (session.status === STATUS.WON) audio.victory();
+        else audio.gameOver();
         onFinished(session.summary());
         return;
       }
@@ -215,6 +253,14 @@ export function createGameScreen(root, { onFinished }) {
       session = createSession(seed);
       hud = createHud(root, session);
       hud.onReady(startWave);
+
+      const mute = root.querySelector("#btn-mute");
+      const paintMute = () => {
+        mute.textContent = audio.muted ? "Sound off" : "Sound on";
+        mute.setAttribute("aria-pressed", String(audio.muted));
+      };
+      paintMute();
+      mute.onclick = () => { audio.unlock(); audio.toggle(); paintMute(); };
       hover = null;
       pendingRotation = ROTATIONS[0];
       coreFlash = 0;

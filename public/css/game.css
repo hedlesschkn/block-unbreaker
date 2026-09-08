@@ -171,3 +171,6 @@
   .panel { overflow: visible; }
   .feed { max-height: 6rem; }
 }
+
+.btn-mute { font-size: 0.72rem; padding: 0.4rem 0.8rem; letter-spacing: 0.1em; }
+.btn-mute[aria-pressed="true"] { color: var(--faint); }

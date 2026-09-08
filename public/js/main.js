@@ -4,6 +4,7 @@
 
 import { WAVES, ECONOMY } from "./engine/constants.js";
 import { createGameScreen } from "./screens/game.js";
+import { createAttract } from "./screens/attract.js";
 import { STATUS } from "./game/session.js";
 
 const screens = {
@@ -14,6 +15,9 @@ const screens = {
 
 function show(name) {
   for (const [key, el] of Object.entries(screens)) el.classList.toggle("is-active", key === name);
+  // The attract simulation only runs while its screen is on top.
+  if (name === "title") attract.start();
+  else attract.stop();
 }
 
 /** A fresh seed per run, so no two solo runs are identical. */
@@ -22,6 +26,7 @@ function newSeed() {
 }
 
 const game = createGameScreen(screens.game, { onFinished: showResults });
+const attract = createAttract(document.getElementById("attract"));
 
 function startRun() {
   show("game");
@@ -64,6 +69,8 @@ function showResults(summary) {
 
   show("results");
 }
+
+attract.start();
 
 document.getElementById("btn-play").addEventListener("click", startRun);
 document.getElementById("btn-again").addEventListener("click", startRun);

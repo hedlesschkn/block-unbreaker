@@ -1,0 +1,23 @@
+{
+  "name": "block-unbreaker",
+  "version": "0.1.0",
+  "description": "Block breaker, played from the wrong side. You place the blocks; the paddle is the enemy.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hedlesschkn/block-unbreaker.git"
+  },
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/hedlesschkn/block-unbreaker/issues"
+  },
+  "homepage": "https://github.com/hedlesschkn/block-unbreaker#readme",
+  "devDependencies": {
+    "wrangler": "^4.130.0"
+  },
+  "private": true
+}

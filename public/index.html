@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Block Unbreaker</title>
+<meta name="description" content="Block breaker, played from the wrong side. You place the blocks. The paddle is the enemy.">
+<link rel="stylesheet" href="/css/base.css">
+</head>
+<body>
+  <main class="stage">
+    <h1 class="title">BLOCK<span>UNBREAKER</span></h1>
+    <p class="tagline">Block breaker, played from the wrong side.</p>
+    <p class="blurb">
+      You never touch the paddle. You never touch the ball.<br>
+      You place the blocks &mdash; and the paddle is not on your side.
+    </p>
+
+    <section class="scaffold" aria-labelledby="scaffold-h">
+      <h2 id="scaffold-h">Scaffold &mdash; task T1.1</h2>
+      <p>The game does not exist yet. This page proves the deploy pipeline works.</p>
+      <ul class="checks">
+        <li><span class="ok">&check;</span> Static assets served from <code>/public</code></li>
+        <li><span class="ok">&check;</span> SPA not-found handling</li>
+        <li id="ws-check"><span class="pending">&hellip;</span> Worker route <code>/ws/:room</code> <button id="probe" type="button">check</button></li>
+      </ul>
+      <p class="next">Next: <strong>T1.2</strong> &mdash; first deploy to <code>*.workers.dev</code>.</p>
+    </section>
+  </main>
+  <script type="module" src="/js/boot.js"></script>
+</body>
+</html>

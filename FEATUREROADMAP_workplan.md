@@ -27,7 +27,7 @@ This plan is designed to be abandoned mid-flight and picked back up cold.
 |---|---|---|---|
 | 0 — Foundation | 3 | 2 | Docs approved |
 | 1 — Deploy skeleton | 2 | 0 | **Live URL exists** |
-| 2 — Single player | 12 | 1 | **Playable game live** |
+| 2 — Single player | 12 | 2 | **Playable game live** |
 | 3 — Multiplayer | 11 | 0 | **Rooms live** |
 | 4 — Stretch | 4 | 0 | — |
 
@@ -124,7 +124,7 @@ sits on. Build them first and build them properly.
   **Core changed from 9 blocks to 8 (4×2)** — an odd width cannot centre on a
   12-column grid. ProductSpec §4 updated with the reasoning.
 
-### [ ] T2.2 — Board model and block definitions
+### [x] T2.2 — Board model and block definitions
 * **Depends on:** T2.1
 * **Files:** `public/js/engine/board.js`, `test/board.test.js`
 * **Do:** The grid data structure. Block type definitions (Wall, Deflector, Absorber, Bomb,
@@ -132,7 +132,11 @@ sits on. Build them first and build them properly.
   `damage()`, Core initialisation, and serialise/deserialise for the wire.
 * **Done when:** Placement rules are enforced (zone, occupancy, affordability), Core
   destruction is detectable, and a board survives a serialise → deserialise round trip
-  unchanged. Tests cover each rule.
+  unchanged. Tests cover each rule. ✅
+* **Notes:** 94 tests total. Board ops mutate by design (the sim clones once per wave
+  and chews the copy); `clone()` gives isolation. Bomb chains are breadth-first with a
+  seen-set so a ring of bombs terminates. Wire format is index-based, keeping a full
+  board under 1.4 KB for `board_update` in T3.5.
 
 ### [ ] T2.3 — Deterministic physics core
 * **Depends on:** T2.2

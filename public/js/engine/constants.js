@@ -135,6 +135,17 @@ export const PADDLE = Object.freeze({
    */
   PREDICTS_LANDING: true,
 
+  /**
+   * Minimum tilt on any return, as a fraction of MAX_RETURN_SPREAD.
+   *
+   * Without this the game has a fixed point: a ball striking the exact centre of a
+   * stationary paddle goes straight up, comes straight back down onto the centre, and
+   * rallies vertically forever. The paddle imparts a little sideways bias instead —
+   * physically it reads as spin off a moving paddle, and mechanically it guarantees
+   * rallies wander instead of locking.
+   */
+  MIN_RETURN_TILT: 0.12,
+
   /** Width shrinks in later waves. ProductSpec §6. */
   SHRINK_START_WAVE: 7,
   SHRINK_PER_BAND: 0.05,
@@ -228,6 +239,21 @@ export const ECONOMY = Object.freeze({
 /** Phases and escalation. ProductSpec §3 and §6. */
 export const WAVES = Object.freeze({
   BUILD_SECONDS: 30,
+
+  /**
+   * Hard time limit on a wave.
+   *
+   * The paddle is very good: on a long descent it has both prediction and time, so it
+   * returns essentially everything aimed within its lane. That is intended — the way
+   * past it is the gutter, not out-rallying it. But it means a board with no
+   * funnelling can rally indefinitely, and a wave that never ends is a wave that never
+   * hands the player back their build phase.
+   *
+   * So a wave is capped. Balls still in play when the timer expires are removed and
+   * pay NOTHING, which keeps tanking from being a strategy: you have to actually kill
+   * balls to earn Shards.
+   */
+  MAX_SECONDS: 45,
 
   /** Surviving this wave wins the run. */
   WIN_WAVE: 20,

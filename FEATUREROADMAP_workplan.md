@@ -27,7 +27,7 @@ This plan is designed to be abandoned mid-flight and picked back up cold.
 |---|---|---|---|
 | 0 — Foundation | 3 | 2 | Docs approved |
 | 1 — Deploy skeleton | 2 | 0 | **Live URL exists** |
-| 2 — Single player | 12 | 2 | **Playable game live** |
+| 2 — Single player | 12 | 3 | **Playable game live** |
 | 3 — Multiplayer | 11 | 0 | **Rooms live** |
 | 4 — Stretch | 4 | 0 | — |
 
@@ -138,7 +138,7 @@ sits on. Build them first and build them properly.
   seen-set so a ring of bombs terminates. Wire format is index-based, keeping a full
   board under 1.4 KB for `board_update` in T3.5.
 
-### [ ] T2.3 — Deterministic physics core
+### [x] T2.3 — Deterministic physics core
 * **Depends on:** T2.2
 * **Files:** `public/js/engine/physics.js`, `test/physics.test.js`
 * **Do:** Fixed-timestep circle-vs-AABB collision against the grid. Ball reflection off
@@ -148,7 +148,19 @@ sits on. Build them first and build them properly.
   Deterministic collision ordering when two collisions land on the same step.
 * **Done when:** No tunnelling at maximum wave speed; a ball fired into a Deflector funnel
   reliably reaches a gutter; identical inputs give identical outputs across runs. Tests
-  cover reflection angles, tunnelling and determinism.
+  cover reflection angles, tunnelling and determinism. ✅
+* **Notes:** 130 tests. No trigonometry anywhere: every surface is axis-aligned or 45°,
+  and 45° reflections collapse to a component swap, so the whole engine is bit-exact.
+  Two design problems surfaced and were fixed:
+  **(1) Infinite rallies.** The paddle has prediction plus a full descent's worth of
+  time, so on a bare board it returns everything and the wave never ends. Added
+  `WAVES.MAX_SECONDS = 45`; balls alive at the cap are removed and pay nothing, so
+  tanking earns no Shards.
+  **(2) A vertical fixed point.** A ball striking a stationary paddle dead-centre
+  rallied straight up and down forever. Added `PADDLE.MIN_RETURN_TILT`.
+  Also learned: a 45° face *swaps* velocity components, so it cannot steepen a dive —
+  real funnels are two-stage (flatten the ball, then tip it down). That is a genuinely
+  good mechanic and should be taught in the UI at T2.6.
 
 ### [ ] T2.4 — `simulateWave()` — the pure entry point
 * **Depends on:** T2.3

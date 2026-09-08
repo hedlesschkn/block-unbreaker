@@ -6,27 +6,102 @@
 <title>Block Unbreaker</title>
 <meta name="description" content="Block breaker, played from the wrong side. You place the blocks. The paddle is the enemy.">
 <link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/game.css">
 </head>
 <body>
-  <main class="stage">
-    <h1 class="title">BLOCK<span>UNBREAKER</span></h1>
-    <p class="tagline">Block breaker, played from the wrong side.</p>
-    <p class="blurb">
-      You never touch the paddle. You never touch the ball.<br>
-      You place the blocks &mdash; and the paddle is not on your side.
-    </p>
 
-    <section class="scaffold" aria-labelledby="scaffold-h">
-      <h2 id="scaffold-h">Scaffold &mdash; task T1.1</h2>
-      <p>The game does not exist yet. This page proves the deploy pipeline works.</p>
-      <ul class="checks">
-        <li><span class="ok">&check;</span> Static assets served from <code>/public</code></li>
-        <li><span class="ok">&check;</span> SPA not-found handling</li>
-        <li id="ws-check"><span class="pending">&hellip;</span> Worker route <code>/ws/:room</code> <button id="probe" type="button">check</button></li>
-      </ul>
-      <p class="next">Next: <strong>T1.2</strong> &mdash; first deploy to <code>*.workers.dev</code>.</p>
-    </section>
-  </main>
-  <script type="module" src="/js/boot.js"></script>
+<!-- ─── Title ─────────────────────────────────────────────────────────────── -->
+<section class="screen is-active" id="screen-title">
+  <div class="title-stack">
+    <h1 class="wordmark">BLOCK<span>UNBREAKER</span></h1>
+    <p class="tagline">Block breaker, played from the wrong side.</p>
+
+    <div class="pitch">
+      <p>You never touch the paddle. You never touch the ball.</p>
+      <p><strong>You place the blocks &mdash; and the paddle is not on your side.</strong></p>
+      <p class="pitch-note">
+        It returns almost everything. So don't build a wall to stop the ball:
+        build a machine that <em>aims</em> it, into the gutters it cannot reach.
+      </p>
+    </div>
+
+    <div class="title-actions">
+      <button class="btn btn-primary" id="btn-play">Play Solo</button>
+      <button class="btn btn-ghost" id="btn-multiplayer" disabled title="Arrives in Phase 3">
+        Play With Friends
+      </button>
+    </div>
+    <p class="version-note">Multiplayer arrives in Phase&nbsp;3. Single player is the whole game for now.</p>
+  </div>
+</section>
+
+<!-- ─── Game ──────────────────────────────────────────────────────────────── -->
+<section class="screen" id="screen-game">
+  <div class="game-layout">
+
+    <aside class="panel panel-build">
+      <div class="purse">
+        <span class="purse-label">Shards</span>
+        <span class="purse-value" id="hud-shards">0</span>
+      </div>
+      <ul class="palette" id="hud-palette"></ul>
+      <div class="controls-hint">
+        <p><kbd>1</kbd>&ndash;<kbd>5</kbd> pick &middot; <kbd>R</kbd> rotate &middot; <kbd>Space</kbd> ready</p>
+        <p>Click to place &middot; click a deflector to turn it &middot; right-click to sell</p>
+      </div>
+    </aside>
+
+    <div class="field-wrap">
+      <canvas id="field" aria-label="Game field"></canvas>
+      <div class="banner" id="hud-banner" hidden></div>
+    </div>
+
+    <aside class="panel panel-status">
+      <div class="stat">
+        <span class="stat-label">Wave</span>
+        <span class="stat-value" id="hud-wave">1</span>
+        <span class="stat-sub" id="hud-wave-target"></span>
+      </div>
+
+      <div class="stat">
+        <span class="stat-label" id="hud-phase-label">Build</span>
+        <div class="timer-track"><div class="timer-fill" id="hud-timer"></div></div>
+        <span class="stat-sub" id="hud-phase-note">Place your defences</span>
+      </div>
+
+      <div class="stat">
+        <span class="stat-label">Core</span>
+        <div class="core-track"><div class="core-fill" id="hud-core"></div></div>
+        <span class="stat-sub" id="hud-core-note"></span>
+      </div>
+
+      <div class="stat stat-wave-info">
+        <span class="stat-label">Incoming</span>
+        <span class="stat-sub" id="hud-incoming"></span>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="btn-ready">Ready</button>
+
+      <ul class="feed" id="hud-feed" aria-live="polite"></ul>
+    </aside>
+  </div>
+</section>
+
+<!-- ─── Results ───────────────────────────────────────────────────────────── -->
+<section class="screen" id="screen-results">
+  <div class="results-card">
+    <h2 class="results-verdict" id="results-verdict">Core Destroyed</h2>
+    <p class="results-sub" id="results-sub"></p>
+
+    <dl class="results-stats" id="results-stats"></dl>
+
+    <div class="title-actions">
+      <button class="btn btn-primary" id="btn-again">Play Again</button>
+      <button class="btn btn-ghost" id="btn-menu">Main Menu</button>
+    </div>
+  </div>
+</section>
+
+<script type="module" src="/js/main.js"></script>
 </body>
 </html>

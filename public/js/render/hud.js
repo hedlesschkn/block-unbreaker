@@ -10,13 +10,17 @@ import { BLOCKS, BLOCK_ORDER, ECONOMY, WAVES, waveConfig, ballCount } from "../e
 import { PALETTE } from "./palette.js";
 import { PHASE } from "../game/session.js";
 
-/** One line of plain English per block, so nothing needs a manual. */
+/**
+ * One line of plain English per block, so nothing needs a manual. HP figures are read
+ * from the catalogue rather than written out, so a balance change cannot leave the
+ * palette telling the player something that stopped being true.
+ */
 const BLURB = Object.freeze({
-  WALL: "Cheap armour. Bounces the ball, takes three hits.",
-  DEFLECTOR: "Turns the ball 90°. Click a placed one to rotate it. This is how you aim.",
+  WALL: `Cheap armour. Bounces the ball and soaks ${BLOCKS.WALL.hp} hits.`,
+  DEFLECTOR: "Throws the ball along its diagonal, whichever way it came in. Click a placed one to turn it. This is how you aim.",
   ABSORBER: "Eats one ball and is consumed. Your panic button.",
   BOMB: "Blows up a 3×3 when broken — balls and your own blocks alike.",
-  GENERATOR: "Pays +5 Shards every wave it survives. Keep it out of the firing line."
+  GENERATOR: `Pays +${ECONOMY.GENERATOR_YIELD} Shards every wave it survives. Keep it out of the firing line.`
 });
 
 const FEED_LIMIT = 7;

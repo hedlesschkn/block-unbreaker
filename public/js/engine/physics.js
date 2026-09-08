@@ -21,7 +21,7 @@
  */
 
 import {
-  GRID, ZONES, BALL, PADDLE, SIM,
+  GRID, ZONES, BALL, PADDLE, SIM, CORE,
   paddleTravel, paddleWidth, ballSpeed, ballCount
 } from "./constants.js";
 import {
@@ -41,13 +41,35 @@ export const EVENT = Object.freeze({
   BALL_EXITED: "ball_exited"
 });
 
-/** Which diagonal a Deflector's reflecting face lies on, keyed by its solid corner. */
-const DIAGONAL = Object.freeze({
-  SW: "NW_SE",
-  NE: "NW_SE",
-  SE: "NE_SW",
-  NW: "NE_SW"
+/**
+ * Where a Deflector throws the ball, keyed by the corner its solid mass occupies:
+ * always straight out along the diagonal, away from the solid corner.
+ *
+ * ── Why this is a kicker and not a mirror ──
+ *
+ * A true 45° mirror SWAPS the velocity components, which means it converts a steep
+ * descent into a shallow sideways drift. Measured over hundreds of runs (T2.11), that
+ * made Deflectors actively harmful: balls skimmed horizontally, stayed in play longer,
+ * and reached the Core more often. Every Deflector strategy scored WORSE than placing
+ * nothing at all, and worse than a plain wall shield — even when used to complement one.
+ *
+ * A mirror also cannot be aimed: where the ball leaves depends on where it arrived. The
+ * design calls for a machine that AIMS the ball, so the Deflector now sends the ball in
+ * a fixed direction set by its rotation, regardless of the incoming angle. That is what
+ * makes funnels buildable and what makes the block worth its cost.
+ *
+ * The trade is physical purity for a block that does what it looks like it does — and
+ * it still looks exactly like this, because the sprite draws the same triangle.
+ */
+const KICK = Object.freeze({
+  SW: { x: 1, y: -1 },   // solid south-west → throws up-right
+  SE: { x: -1, y: -1 },  // solid south-east → throws up-left
+  NW: { x: 1, y: 1 },    // solid north-west → throws down-right
+  NE: { x: -1, y: 1 }    // solid north-east → throws down-left
 });
+
+/** 1/sqrt(2), computed rather than written out so it is exactly representable. */
+const DIAGONAL_SCALE = Math.sqrt(0.5);
 
 /** The paddle's vertical centre line. */
 export const PADDLE_Y = ZONES.PADDLE_ROW + 0.5;
@@ -179,16 +201,14 @@ export function stepPaddle(paddle, balls, dt) {
 
 // ─── Collision ───────────────────────────────────────────────────────────────
 
-/** Reflect off a 45° face. Exact — no trigonometry. See the header. */
-function reflectDiagonal(ball, diagonal) {
-  const { vx, vy } = ball;
-  if (diagonal === "NW_SE") {
-    ball.vx = vy;
-    ball.vy = vx;
-  } else {
-    ball.vx = -vy;
-    ball.vy = -vx;
-  }
+/**
+ * Throw the ball out along the Deflector's diagonal at unchanged speed. Exact — the
+ * only irrational step is Math.sqrt, which IEEE-754 specifies precisely.
+ */
+function kickDiagonal(ball, rotation, speed) {
+  const dir = KICK[rotation] ?? KICK.SW;
+  ball.vx = dir.x * speed * DIAGONAL_SCALE;
+  ball.vy = dir.y * speed * DIAGONAL_SCALE;
 }
 
 /**
@@ -257,7 +277,7 @@ function resolveBlockHit(state, ball, hit, events) {
   separate(ball, hit);
 
   if (def.diagonal === true) {
-    reflectDiagonal(ball, DIAGONAL[hit.block.rotation] ?? "NW_SE");
+    kickDiagonal(ball, hit.block.rotation, speed);
   } else if (hit.depthX < hit.depthY) {
     ball.vx = -ball.vx;
   } else {
@@ -265,7 +285,10 @@ function resolveBlockHit(state, ball, hit, events) {
   }
   enforceVerticalFloor(ball, speed);
 
-  const result = damage(board, hit.col, hit.row, ball.damage);
+  // A hit on the Core hurts far more than a hit on a brick — see CORE.DAMAGE_MULTIPLIER.
+  const isCore = hit.block.type === CORE_TYPE;
+  const dealt = isCore ? ball.damage * CORE.DAMAGE_MULTIPLIER : ball.damage;
+  const result = damage(board, hit.col, hit.row, dealt);
   events.push({
     t: state.step,
     type: result.wasCore ? EVENT.CORE_HIT : EVENT.BLOCK_HIT,

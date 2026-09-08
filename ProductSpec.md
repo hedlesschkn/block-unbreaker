@@ -87,11 +87,16 @@ tallied, and the next Build phase opens. If the Core is gone, the run ends here 
 
 ### The Core
 
-Eight blocks in the top zone — four columns by two rows — pre-placed, 10 HP each, not
+Eight blocks in the top zone — four columns by two rows — pre-placed, 7 HP each, not
 player-editable and not repairable in v1. **When the last Core block breaks, the run is
 over.** Core blocks are visually distinct (bright, pulsing) so the stakes are always
 readable.
 
+> **Hits on the Core do triple damage** (`CORE.DAMAGE_MULTIPLIER`). Without that, an
+> empty board outperformed every built defence — balls fell straight through to the
+> gutters and cleared quickly, so placing blocks was a liability. Making an
+> unobstructed path to the Core genuinely lethal is what makes this a defence game.
+>
 > Revised at T2.1, from nine blocks to eight. A 3×3 Core cannot be centred on a
 > 12-column grid — an odd width always lands one column off centre, which would quietly
 > bias every left-versus-right funnelling decision in a game whose entire skill
@@ -126,11 +131,11 @@ otherwise. All costs and HP values below are **starting values, tuned in playtes
 
 | Block | Cost | HP | Behaviour |
 |---|---:|---:|---|
-| **Wall** | 10 | 3 | Plain armour. Reflects, absorbs three hits, dies. The cheap filler. |
-| **Deflector** | 25 | 6 | Occupies a cell as a diagonal. Reflects the ball 90° instead of 180°. Rotatable to any of four orientations. The aiming tool — this is how you build a funnel to the gutters. |
+| **Wall** | 14 | 8 | Plain armour. Reflects, absorbs three hits, dies. The cheap filler. |
+| **Deflector** | 30 | 24 | Occupies a cell as a diagonal, and **throws the ball straight out along that diagonal regardless of how it arrived**. Rotatable to any of four orientations. The aiming tool. Far tougher than anything else, because a block whose job is to be hit repeatedly cannot be made of glass. |
 | **Absorber** | 40 | 1 | Destroys the ball that touches it, and is consumed doing so. One block, one ball. Your panic button. |
-| **Bomb** | 30 | 1 | On destruction, detonates across the surrounding 3×3, destroying any ball inside it — **and any of your own blocks inside it.** High risk, high reward, terrible to place carelessly. |
-| **Generator** | 50 | 2 | Pays **+5 Shards** at the end of every wave it survives. Fragile, expensive, and it has to be somewhere the ball can't reach. An economy engine you must also defend. |
+| **Bomb** | 30 | 2 | On destruction, detonates across the surrounding 3×3, destroying any ball inside it — **and any of your own blocks inside it.** High risk, high reward, terrible to place carelessly. |
+| **Generator** | 50 | 5 | Pays **+5 Shards** at the end of every wave it survives. Fragile, expensive, and it has to be somewhere the ball can't reach. An economy engine you must also defend. |
 
 Reserved for later waves of development (see roadmap Phase 4): **Magnet** (curves nearby
 ball paths), **Tar** (halves ball speed while overlapping), **Repair Node** (heals adjacent
@@ -140,11 +145,11 @@ blocks between waves).
 
 ## 5. Economy
 
-* Start each run with **120 Shards**.
-* **+15** per ball eliminated through the bottom of the field (a "gutter kill").
+* Start each run with **150 Shards**.
+* **+25** per ball eliminated through the bottom of the field (a "gutter kill").
 * **+8** per ball eliminated by an Absorber or Bomb. Deliberately less — the game rewards
   the elegant solution over the brute-force one.
-* **+20** flat per wave survived.
+* **+15** per wave **cleared**. A wave that merely runs out the clock pays a quarter of that — outlasting the timer is not the same as beating the wave.
 * **+5** per surviving Generator, per wave.
 * Selling a block refunds **50%**, build phase only.
 

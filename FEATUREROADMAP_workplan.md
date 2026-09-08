@@ -27,7 +27,7 @@ This plan is designed to be abandoned mid-flight and picked back up cold.
 |---|---|---|---|
 | 0 — Foundation | 3 | 2 | Docs approved |
 | 1 — Deploy skeleton | 2 | 0 | **Live URL exists** |
-| 2 — Single player | 12 | 3 | **Playable game live** |
+| 2 — Single player | 12 | 4 | **Playable game live** |
 | 3 — Multiplayer | 11 | 0 | **Rooms live** |
 | 4 — Stretch | 4 | 0 | — |
 
@@ -162,7 +162,7 @@ sits on. Build them first and build them properly.
   real funnels are two-stage (flatten the ball, then tip it down). That is a genuinely
   good mechanic and should be taught in the UI at T2.6.
 
-### [ ] T2.4 — `simulateWave()` — the pure entry point
+### [x] T2.4 — `simulateWave()` — the pure entry point
 * **Depends on:** T2.3
 * **Files:** `public/js/engine/simulate.js`, `test/simulate.test.js`
 * **Do:** `simulateWave(board, waveConfig, seed) → { events[], finalBoard, outcome }`.
@@ -172,7 +172,15 @@ sits on. Build them first and build them properly.
   `Date.now()`, or `Math.random`.**
 * **Done when:** A full wave resolves headlessly in `node`; two runs of the same seed
   produce identical timelines; a wave always terminates (add a hard step cap as a
-  safety net).
+  safety net). ✅
+* **Notes:** 151 tests. A test spawns a separate process — standing in for the Durable
+  Object — and asserts it reaches a byte-identical timeline, board, score and outcome.
+  That is the ProductSpec §9 claim verified directly rather than assumed.
+  Also ships `createWaveRunner()`, the same simulation surrendered one step at a time
+  so the browser can draw between steps; a test proves it lands on exactly the same
+  result as the one-shot call.
+  **Measured cost:** worst case **6.9 ms** for a full 45-second wave. The DO can
+  resolve a wave in one invocation with room to spare.
 
 ### [ ] T2.5 — Canvas rendering
 * **Depends on:** T2.4, **T0.3**

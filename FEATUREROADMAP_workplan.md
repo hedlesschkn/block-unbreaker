@@ -25,7 +25,7 @@ This plan is designed to be abandoned mid-flight and picked back up cold.
 
 | Phase | Tasks | Done | Milestone |
 |---|---|---|---|
-| 0 — Foundation | 3 | 1 | Docs approved |
+| 0 — Foundation | 3 | 2 | Docs approved |
 | 1 — Deploy skeleton | 2 | 0 | **Live URL exists** |
 | 2 — Single player | 12 | 0 | **Playable game live** |
 | 3 — Multiplayer | 11 | 0 | **Rooms live** |
@@ -41,11 +41,11 @@ This plan is designed to be abandoned mid-flight and picked back up cold.
 * **Do:** Create the public GitHub repo, push an initial commit.
 * **Done when:** `https://github.com/hedlesschkn/block-unbreaker` exists with a commit on `main`. ✅
 
-### [~] T0.2 — The three documents
+### [x] T0.2 — The three documents
 * **Depends on:** T0.1
 * **Files:** `README.md`, `ProductSpec.md`, `FEATUREROADMAP_workplan.md`
 * **Do:** Write the README, the product spec and this workplan. No game code.
-* **Done when:** All three exist on a branch, PR is open, and Tim has picked the first task.
+* **Done when:** All three exist on a branch, PR is open, and Tim has picked the first task. ✅
 
 ### [ ] T0.3 — Figma design reconciliation — **BLOCKS ALL UI WORK**
 * **Depends on:** T0.2, and a Figma file URL from Tim

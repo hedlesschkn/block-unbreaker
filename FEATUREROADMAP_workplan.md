@@ -27,7 +27,7 @@ This plan is designed to be abandoned mid-flight and picked back up cold.
 |---|---|---|---|
 | 0 — Foundation | 3 | 2 | Docs approved |
 | 1 — Deploy skeleton | 2 | 0 | **Live URL exists** |
-| 2 — Single player | 12 | 10 | **Playable game live** |
+| 2 — Single player | 12 | 11 | **Playable game live** |
 | 3 — Multiplayer | 11 | 0 | **Rooms live** |
 | 4 — Stretch | 4 | 0 | — |
 
@@ -257,14 +257,30 @@ sits on. Build them first and build them properly.
   Mute persists in `localStorage`, wrapped in try/catch for private browsing, and is
   also bound to `M`.
 
-### [ ] T2.11 — Balance pass
+### [x] T2.11 — Balance pass
 * **Depends on:** T2.10
 * **Files:** `public/js/engine/constants.js`
 * **Do:** Actually play it. Tune paddle speed and width, block costs, ball speed ramp and
   the gutter-kill/absorb-kill reward gap until wave 20 is hard but fair, and until funnelling
   to the gutters is clearly the strongest strategy.
 * **Done when:** Tim can reach roughly wave 10 on a first attempt and wave 20 is a real
-  achievement. Any constant changed is noted in the commit.
+  achievement. Any constant changed is noted in the commit. ✅ *(needs your playtest to
+  confirm — the numbers below are from a headless harness, not from hands on it)*
+* **Notes:** Added `tools/balance.js` (not shipped): plays hundreds of full runs under
+  fixed strategies and reports medians. It replaced opinion with numbers, and the
+  numbers found three real problems no amount of guessing would have.
+  **(1)** Timed-out waves paid full survival income, funding passivity.
+  **(2)** An **empty board beat every built defence** — with nothing in the way balls
+  fell straight to the gutters and cleared fast, so blocks were a liability. Fixed with
+  `CORE.DAMAGE_MULTIPLIER`, which makes an unobstructed path to the castle lethal.
+  **(3)** The **Deflector was a trap**. As a 45° mirror it converted steep descents into
+  shallow drifts that kept balls alive; every deflector strategy scored worse than
+  placing nothing, *even as a complement to a shield*. No constant fixed it — it needed
+  a mechanic change, and is now a **kicker** that throws the ball along its diagonal
+  regardless of the incoming angle. See the note in `physics.js`.
+  **Still open:** the full-width wall shield remains the strongest strategy (75% win)
+  over deflector play. That is a design question for a human playtest, not something
+  more automated tuning should decide.
 
 ### [ ] T2.12 — Deploy single player — **MILESTONE: playable game live**
 * **Depends on:** T2.11

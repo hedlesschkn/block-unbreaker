@@ -43,10 +43,13 @@ export function maxStepsForWave() {
  * Survival and Generator income are only paid when the Core is still standing —
  * there is no consolation prize for the wave that ended your run.
  */
-export function scoreWave(board, tally, survived) {
+export function scoreWave(board, tally, survived, outcome = OUTCOME.CLEARED) {
   const gutter = tally.gutterKills * ECONOMY.GUTTER_KILL;
   const absorbed = tally.absorbKills * ECONOMY.ABSORB_KILL;
-  const survival = survived ? ECONOMY.WAVE_SURVIVED : 0;
+
+  // Outlasting the clock is not the same as beating the wave.
+  const survivalRate = outcome === OUTCOME.TIMED_OUT ? ECONOMY.TIMEOUT_SURVIVAL_FRACTION : 1;
+  const survival = survived ? Math.round(ECONOMY.WAVE_SURVIVED * survivalRate) : 0;
   const generators = survived ? generatorYield(board) : 0;
 
   return {
@@ -130,7 +133,7 @@ export function simulateWave(board, waveConfig, seed) {
     outcome,
     steps: state.step,
     duration: state.step * SIM.TIMESTEP,
-    score: scoreWave(working, state, survived),
+    score: scoreWave(working, state, survived, outcome),
     coreHp: coreHp(working),
     survived
   };
@@ -197,7 +200,7 @@ export function createWaveRunner(board, waveConfig, seed) {
         outcome: outcome ?? OUTCOME.CLEARED,
         steps: state.step,
         duration: state.step * SIM.TIMESTEP,
-        score: scoreWave(working, state, survived),
+        score: scoreWave(working, state, survived, outcome ?? OUTCOME.CLEARED),
         coreHp: coreHp(working),
         survived
       };

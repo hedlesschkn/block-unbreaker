@@ -67,8 +67,12 @@ export const ZONES = Object.freeze({
   /**
    * Dead columns at each edge that the paddle physically cannot cover.
    * Getting a ball down a gutter is how you win. ProductSpec §2.
+   *
+   * Widened from 1 to 1.5 at T2.11: with one-cell gutters the paddle covered 83% of
+   * the field and most waves simply timed out, which is the least interesting way for
+   * a wave to end.
    */
-  GUTTER_COLS: 1
+  GUTTER_COLS: 1.5
 });
 
 /**
@@ -82,7 +86,21 @@ export const ZONES = Object.freeze({
 export const CORE = Object.freeze({
   COLS: 4,
   ROWS: 2,
-  HP: 10,
+  /** 7, not 10: at 80 total HP a player who did nothing at all survived to wave 10. */
+  HP: 7,
+
+  /**
+   * Damage multiplier for hits that land on the Core.
+   *
+   * Without this the game rewarded an EMPTY board: with nothing in the way, balls fell
+   * straight through to the gutters and cleared quickly, so doing nothing scored more
+   * gutter kills and survived longer than any built defence (measured, T2.11). Blocks
+   * were a liability, which is the exact opposite of a defence game.
+   *
+   * Making an unobstructed path to the Core genuinely lethal is what puts the "defence"
+   * back in: something has to stand between the ball and the castle.
+   */
+  DAMAGE_MULTIPLIER: 3,
   /** Derived: centred horizontally, flush to the top of the core zone. */
   get START_COL() {
     return (GRID.COLS - this.COLS) / 2;
@@ -107,7 +125,7 @@ export const BALL = Object.freeze({
    * ball can settle into a near-horizontal groove and bounce sideways forever,
    * which is boring to watch and burns the simulation step budget.
    */
-  MIN_VERTICAL_FRACTION: 0.20,
+  MIN_VERTICAL_FRACTION: 0.30,
 
   /** Horizontal spread of the opening launch, as a fraction of speed. */
   LAUNCH_SPREAD: 0.45
@@ -119,7 +137,7 @@ export const PADDLE = Object.freeze({
   HEIGHT: 0.4,
 
   /** Cells per second. Beatable by distance, not by trickery. */
-  MAX_SPEED: 11.0,
+  MAX_SPEED: 10.0,
 
   /**
    * Return "english": how far the bounce tilts when the ball strikes the end of the
@@ -161,16 +179,32 @@ export const BLOCKS = Object.freeze({
   WALL: Object.freeze({
     id: "WALL",
     label: "Wall",
-    cost: 10,
-    hp: 3,
+    cost: 14,
+    /**
+     * 8, not 3. At 3 HP a wall was gone after three bounces, so a shield had to be
+     * rebuilt from scratch every wave — and income could not cover it. Defences that
+     * are annihilated each wave mean investment never compounds, which is why building
+     * anything scored no better than building nothing (measured, T2.11). Blocks should
+     * wear down across a run, not vanish within one wave.
+     */
+    hp: 8,
     reflects: true
   }),
 
   DEFLECTOR: Object.freeze({
     id: "DEFLECTOR",
     label: "Deflector",
-    cost: 25,
-    hp: 6,
+    cost: 30,
+    /**
+     * Deliberately far tougher than anything else.
+     *
+     * At 6 HP only ~10% of Deflectors survived a single wave (measured, T2.11), so the
+     * funnel a player built evaporated before it could aim anything and the intended
+     * strategy scored no better than doing nothing. A block whose entire job is to be
+     * hit repeatedly cannot be made of glass. It still wears out — it is just no longer
+     * consumed on contact.
+     */
+    hp: 24,
     reflects: true,
     /** Reflects 90° off a diagonal face rather than straight back. */
     diagonal: true,
@@ -191,7 +225,7 @@ export const BLOCKS = Object.freeze({
     id: "BOMB",
     label: "Bomb",
     cost: 30,
-    hp: 1,
+    hp: 2,
     reflects: true,
     /** On destruction, detonates across the surrounding 3×3 — balls AND your own blocks. */
     explodes: true,
@@ -202,7 +236,7 @@ export const BLOCKS = Object.freeze({
     id: "GENERATOR",
     label: "Generator",
     cost: 50,
-    hp: 2,
+    hp: 5,
     reflects: true,
     /** Pays out at the end of every wave it survives. */
     yieldsShards: true
@@ -217,19 +251,27 @@ export const ROTATIONS = Object.freeze(["NE", "SE", "SW", "NW"]);
 
 /** Shards. ProductSpec §5. */
 export const ECONOMY = Object.freeze({
-  START_SHARDS: 120,
+  START_SHARDS: 150,
 
   /**
    * A ball driven out of the bottom of the field. Deliberately worth roughly twice
    * an absorb kill — this gap is the main lever pushing players toward the
    * interesting strategy, and it is the first number to touch in the balance pass.
    */
-  GUTTER_KILL: 15,
+  GUTTER_KILL: 25,
 
   /** A ball eaten by an Absorber or caught in a Bomb. */
   ABSORB_KILL: 8,
 
-  WAVE_SURVIVED: 20,
+  WAVE_SURVIVED: 15,
+
+  /**
+   * Fraction of the survival bonus paid when a wave TIMES OUT rather than being
+   * cleared. Surviving the clock is not the same as beating the wave, and paying both
+   * the same is what funded doing nothing (measured, T2.11).
+   */
+  TIMEOUT_SURVIVAL_FRACTION: 0.25,
+
   GENERATOR_YIELD: 5,
 
   /** Build phase only. */

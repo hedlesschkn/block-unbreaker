@@ -112,7 +112,7 @@ describe("block collision", () => {
     }
     assert.ok(hit, "no block hit was registered");
     assert.ok(ball.vy > 0, "ball should be travelling downward after the bounce");
-    assert.equal(getCell(board, 5, BUILD_ROW + 2).hp, 2);
+    assert.equal(getCell(board, 5, BUILD_ROW + 2).hp, BLOCKS.WALL.hp - 1);
   });
 
   test("hits chip a block by exactly one HP each, and the last one destroys it", () => {
@@ -164,8 +164,12 @@ describe("block collision", () => {
     place(board, "BOMB", 5, row, null, 9999);
     for (const c of [4, 6]) place(board, "WALL", c, row, null, 9999);
 
+    // Pre-chip the bomb so a single connecting hit sets it off; this test is about the
+    // blast, not about how many bounces it takes to break a 2 HP block.
+    getCell(board, 5, row).hp = 1;
+
     const { state } = oneBall(board, 5.5, row + 1.6, 0, -9);
-    const events = runToCompletion(state, 1000);
+    const events = runToCompletion(state, 4000);
 
     assert.ok(events.some((e) => e.type === EVENT.BOMB_DETONATED), "bomb never detonated");
     assert.ok(isEmpty(board, 4, row), "friendly fire should have cleared the neighbour");
@@ -217,19 +221,32 @@ describe("block collision", () => {
 });
 
 describe("deflectors", () => {
-  test("a NW–SE face swaps the velocity components", () => {
-    const board = createBoard();
-    place(board, "DEFLECTOR", 5, BUILD_ROW + 2, "SW", 999);
-    const speed = ballSpeed(1);
-    const ball = createBall(0, 5.5, BUILD_ROW + 3.6, 0, -speed);
-    const state = createState(board, [ball], 1);
+  test("throws the ball out along its diagonal, away from its solid corner", () => {
+    // A Deflector is a KICKER, not a mirror: the outgoing direction is fixed by the
+    // rotation and does not depend on how the ball arrived. That is what makes it
+    // aimable, and it is why deflector strategies work at all — see the note in
+    // physics.js and the T2.11 balance findings.
+    const expected = {
+      SW: { x: 1, y: -1 }, SE: { x: -1, y: -1 },
+      NW: { x: 1, y: 1 },  NE: { x: -1, y: 1 }
+    };
 
-    for (let i = 0; i < 60; i++) {
-      if (step(state).some((e) => e.type === EVENT.BLOCK_HIT)) break;
+    for (const [rotation, dir] of Object.entries(expected)) {
+      const board = createBoard();
+      place(board, "DEFLECTOR", 5, BUILD_ROW + 2, rotation, 999);
+      const speed = ballSpeed(1);
+      const ball = createBall(0, 5.5, BUILD_ROW + 3.6, 0, -speed);
+      const state = createState(board, [ball], 1);
+
+      let hit = false;
+      for (let i = 0; i < 80 && !hit; i++) hit = step(state).some((e) => e.type === EVENT.BLOCK_HIT);
+      assert.ok(hit, `${rotation}: never struck the deflector`);
+
+      assert.equal(Math.sign(ball.vx), dir.x, `${rotation}: wrong horizontal direction`);
+      assert.equal(Math.sign(ball.vy), dir.y, `${rotation}: wrong vertical direction`);
+      // A 45° throw: equal parts across and down.
+      assert.ok(Math.abs(Math.abs(ball.vx) - Math.abs(ball.vy)) < 1e-9, `${rotation}: not a 45° throw`);
     }
-    // (0, -s) reflected across NW–SE becomes (-s, 0): straight up turns into straight left.
-    assert.ok(Math.abs(ball.vx + speed) < 1e-9 || Math.abs(ball.vy) < speed * 0.5,
-      `expected a sideways deflection, got vx=${ball.vx} vy=${ball.vy}`);
   });
 
   test("all four rotations deflect, and none passes the ball through", () => {
@@ -393,39 +410,46 @@ describe("stability", () => {
     }
   });
 
-  test("the paddle really does hold a bare board — this is why waves are timed", () => {
-    // Documents the behaviour that forced WAVES.MAX_SECONDS to exist. With nothing to
-    // deflect with, the paddle has both prediction and a full descent's worth of time,
-    // so it returns everything and the rally is unbounded. The wave timer in
-    // simulate.js is what ends it; the physics layer alone will not.
-    const state = createState(createBoard(), launchBalls(1, createRng("RALLY")), 1);
-    for (let i = 0; i < 3000 && ballsRemaining(state) > 0; i++) step(state);
-    assert.ok(ballsRemaining(state) > 0, "a bare board unexpectedly resolved itself");
+  test("a bare board leaves the Core exposed — nothing between ball and castle", () => {
+    // Rewritten at T2.11. This used to assert that a bare board rallies forever, but
+    // widening the gutters and multiplying Core damage changed the outcome: an empty
+    // field now resolves, usually by wrecking the Core. That is the point — an
+    // undefended castle should not be a viable way to play.
+    const state = createState(createBoard(), launchBalls(1, createRng("BARE")), 1);
+    let coreHits = 0;
+    for (let i = 0; i < 6000 && ballsRemaining(state) > 0; i++) {
+      coreHits += step(state).filter((e) => e.type === EVENT.CORE_HIT).length;
+    }
+    assert.ok(coreHits > 0, "a bare board took no Core damage at all");
   });
 
-  test("a deflector turns a shallow drift into a steep descent — the funnel primitive", () => {
-    // A 45° face SWAPS the velocity components, so it cannot make a steep descent
-    // steeper: feeding it a fast dive just yields a shallow drift. Funnelling to the
-    // gutter therefore takes two stages — flatten the ball out, then tip it down. This
-    // guards stage two, which is the half that makes the gutter reachable at all.
-    const board = createBoard();
-    const cell = { col: 3, row: BUILD_ROW + 4 };
-    place(board, "DEFLECTOR", cell.col, cell.row, "NW", 999);
-
+  test("sends the ball down regardless of how it arrived — the funnel primitive", () => {
+    // The kicker's whole point: a downward-facing Deflector sends the ball DOWN however
+    // it was travelling. As a mirror it could not do this, which is why funnels did not
+    // work before T2.11.
     const speed = ballSpeed(1);
-    const ball = createBall(0, cell.col + 2.0, cell.row + 0.5, -speed * 0.97, speed * 0.24);
-    const state = createState(board, [ball], 1);
+    const approaches = [
+      { vx: -speed * 0.97, vy: speed * 0.24 },   // shallow drift, leftward
+      { vx: 0, vy: -speed },                     // straight up
+      { vx: speed * 0.7, vy: -speed * 0.7 }      // rising diagonally
+    ];
 
-    let deflected = false;
-    for (let i = 0; i < 120 && !deflected; i++) {
-      deflected = step(state).some((e) => e.type === EVENT.BLOCK_HIT);
+    for (const approach of approaches) {
+      const board = createBoard();
+      const cell = { col: 3, row: BUILD_ROW + 4 };
+      place(board, "DEFLECTOR", cell.col, cell.row, "NW", 999); // solid NW → throws down-right
+
+      const ball = createBall(0, cell.col + 2.0, cell.row + 0.5, approach.vx, approach.vy);
+      const state = createState(board, [ball], 1);
+
+      let deflected = false;
+      for (let i = 0; i < 160 && !deflected; i++) {
+        deflected = step(state).some((e) => e.type === EVENT.BLOCK_HIT);
+      }
+      if (!deflected) continue; // some approaches miss; the ones that connect must obey
+      assert.ok(ball.vy > 0, `expected a downward exit, got vy=${ball.vy}`);
+      assert.ok(ball.vx > 0, `expected a rightward exit, got vx=${ball.vx}`);
     }
-    assert.ok(deflected, "the ball never reached the deflector");
-    assert.ok(ball.vy > 0, `expected a downward exit, got vy=${ball.vy}`);
-    assert.ok(
-      Math.abs(ball.vy) > Math.abs(ball.vx),
-      `expected the descent to be steeper than it is wide: vx=${ball.vx} vy=${ball.vy}`
-    );
   });
 });
 

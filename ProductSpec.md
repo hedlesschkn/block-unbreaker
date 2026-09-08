@@ -87,9 +87,16 @@ tallied, and the next Build phase opens. If the Core is gone, the run ends here 
 
 ### The Core
 
-Nine blocks in the top zone, pre-placed, 10 HP each, not player-editable and not
-repairable in v1. **When the last Core block breaks, the run is over.** Core blocks are
-visually distinct (bright, pulsing) so the stakes are always readable.
+Eight blocks in the top zone — four columns by two rows — pre-placed, 10 HP each, not
+player-editable and not repairable in v1. **When the last Core block breaks, the run is
+over.** Core blocks are visually distinct (bright, pulsing) so the stakes are always
+readable.
+
+> Revised at T2.1, from nine blocks to eight. A 3×3 Core cannot be centred on a
+> 12-column grid — an odd width always lands one column off centre, which would quietly
+> bias every left-versus-right funnelling decision in a game whose entire skill
+> expression is choosing a side to funnel toward. Four columns centre exactly. Raised
+> rather than changed silently, per §11.
 
 ### The ball
 

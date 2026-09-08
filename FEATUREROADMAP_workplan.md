@@ -27,7 +27,7 @@ This plan is designed to be abandoned mid-flight and picked back up cold.
 |---|---|---|---|
 | 0 — Foundation | 3 | 2 | Docs approved |
 | 1 — Deploy skeleton | 2 | 0 | **Live URL exists** |
-| 2 — Single player | 12 | 0 | **Playable game live** |
+| 2 — Single player | 12 | 1 | **Playable game live** |
 | 3 — Multiplayer | 11 | 0 | **Rooms live** |
 | 4 — Stretch | 4 | 0 | — |
 
@@ -99,7 +99,7 @@ Tasks T2.1–T2.4 are **headless and pure** — no DOM, no canvas, no Figma depe
 can be built and unit-tested with `node` alone, and they are the foundation everything else
 sits on. Build them first and build them properly.
 
-### [ ] T2.1 — Engine constants and seeded RNG
+### [x] T2.1 — Engine constants and seeded RNG
 * **Depends on:** T1.1
 * **Files:** `public/js/engine/constants.js`, `public/js/engine/rng.js`, `test/rng.test.js`
 * **Do:** Put **every** tunable number from ProductSpec §2–§6 in `constants.js` — grid size,
@@ -108,7 +108,21 @@ sits on. Build them first and build them properly.
   Implement a small seeded PRNG (mulberry32 or xorshift128). `Math.random` is banned in
   `engine/`.
 * **Done when:** The same seed produces the same sequence across two separate `node` runs,
-  proven by a test.
+  proven by a test. ✅
+* **Notes:** 53 tests, all passing (`npm test`). Determinism is proven two ways: a
+  committed golden vector (frozen by an earlier process, so any future match proves
+  cross-run and cross-version stability) and a test that genuinely spawns a child
+  `node` process and diffs 500 draws.
+  Added beyond the task: a written **determinism contract** at the top of
+  `constants.js` banning `Math.sin/cos/atan2/pow/…` in `engine/` — those are not
+  bit-portable across V8, JavaScriptCore and SpiderMonkey, so a Safari client and the
+  workerd DO would silently desync (this is why `speedMultiplier()` is a loop, not
+  `Math.pow`). A test greps the source to enforce it.
+  `test/constants.test.js` guards field geometry, the escalation table and the
+  anti-tunnelling margin — a ball moves 0.04 cells per substep at the win wave against
+  a 0.28 radius, and tunnelling only becomes possible around wave 70.
+  **Core changed from 9 blocks to 8 (4×2)** — an odd width cannot centre on a
+  12-column grid. ProductSpec §4 updated with the reasoning.
 
 ### [ ] T2.2 — Board model and block definitions
 * **Depends on:** T2.1

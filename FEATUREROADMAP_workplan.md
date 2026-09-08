@@ -90,6 +90,9 @@ alongside it. If deployment is broken, it should be broken while the app is ten 
   `npx wrangler tail` streams logs.
 * **Done when:** The URL is public, loads, is written into the README status table, and
   Tim has opened it.
+* **Notes:** ⏸ **Blocked on Tim.** `npx wrangler login` opens a browser OAuth flow that
+  only the account holder can complete. Everything else is ready: `wrangler deploy
+  --dry-run` validates cleanly (23 assets, both bindings resolve). One command away.
 
 ---
 
@@ -288,6 +291,9 @@ sits on. Build them first and build them properly.
 * **Do:** `npx wrangler deploy`. Play the live build start to finish. Update the README.
 * **Done when:** A stranger with the URL can play a complete run in their browser.
   **Phase 3 does not begin until this box is checked.**
+* **Notes:** ⏸ **Blocked on Tim**, same single reason as T1.2: Cloudflare auth. The game
+  itself is finished and verified locally end to end — build, place, wave, resolve,
+  escalate, win and loss, results, replay.
 
 ---
 

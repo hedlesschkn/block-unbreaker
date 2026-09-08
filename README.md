@@ -19,13 +19,21 @@ other's boards crumble live.
 
 | | |
 |---|---|
-| **Stage** | Documentation. No game code yet. |
-| **Live URL** | Not deployed yet |
+| **Stage** | **Single player complete and playable.** Multiplayer not started. |
+| **Live URL** | *Not deployed yet — needs `npx wrangler login` (see below)* |
 | **Repo** | https://github.com/hedlesschkn/block-unbreaker |
+| **Tests** | 172, all passing (`npm test`) |
+
+**To put it on the internet**, authenticate once and deploy:
+
+```bash
+npx wrangler login && npx wrangler deploy
+```
+
+`wrangler login` opens a browser to authorise your Cloudflare account — it is the one
+step that cannot be automated. After that, `npm run deploy` is all it takes.
 
 Read [FEATUREROADMAP_workplan.md](FEATUREROADMAP_workplan.md) for what is built and what is next.
-A playable **single-player** game ships and goes live on the internet before any
-multiplayer work starts.
 
 ---
 
@@ -64,7 +72,7 @@ No database, no accounts, no login, no passwords. A display name and a room code
 
 ```bash
 npm install
-npx wrangler dev
+npm run dev
 ```
 
 Then open the URL wrangler prints (usually `http://localhost:8787`).
@@ -84,7 +92,7 @@ npx wrangler login
 Then, any time:
 
 ```bash
-npx wrangler deploy
+npm run deploy
 ```
 
 Wrangler prints the live `*.workers.dev` URL. That's the whole deploy; there is no build
@@ -93,8 +101,17 @@ step, no bundler, and no server to keep running.
 To watch logs from the live deployment:
 
 ```bash
-npx wrangler tail
+npm run tail
 ```
+
+## Test it
+
+```bash
+npm test
+```
+
+172 tests, no framework — just `node --test`. The engine is pure and headless, so the
+physics, the board rules and a whole run can all be tested without a browser.
 
 ---
 
@@ -125,9 +142,14 @@ instead.
 │       ├── engine/      deterministic simulation (no DOM, no globals)
 │       ├── render/      canvas drawing
 │       └── net/         websocket client
+│   ├── game/            the run: phases, purse, wave counter
+│   └── screens/         title, game, results, attract mode
 ├── src/
 │   ├── index.js         the Worker: routes /ws, serves everything else
-│   └── room.js          the Durable Object
+│   └── room.js          the Durable Object (a stub until Phase 3)
+├── test/                node --test suites
+├── tools/
+│   └── balance.js       headless balance harness (not deployed)
 ├── wrangler.jsonc
 ├── README.md
 ├── ProductSpec.md

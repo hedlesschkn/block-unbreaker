@@ -70,9 +70,10 @@ export const ZONES = Object.freeze({
    *
    * Widened from 1 to 1.5 at T2.11: with one-cell gutters the paddle covered 83% of
    * the field and most waves simply timed out, which is the least interesting way for
-   * a wave to end.
+   * a wave to end. Nudged to 1.75 after playtesting — angled approaches still felt
+   * like they should have got through.
    */
-  GUTTER_COLS: 1.5
+  GUTTER_COLS: 1.75
 });
 
 /**

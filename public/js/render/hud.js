@@ -48,6 +48,12 @@ export function createHud(root, session) {
 
   // ── Palette ──────────────────────────────────────────────────────────────
 
+  // A fresh HUD is built for every run, but the DOM it decorates is the same DOM as
+  // last time. Without clearing, a second run appended a second full set of palette
+  // entries onto the first and the panel showed everything twice.
+  el.palette.replaceChildren();
+  el.feed.replaceChildren();
+
   for (const [index, type] of BLOCK_ORDER.entries()) {
     const def = BLOCKS[type];
     const colors = PALETTE.blocks[type];
@@ -171,6 +177,10 @@ export function createHud(root, session) {
     selectByIndex(index) {
       if (index >= 0 && index < BLOCK_ORDER.length) select(BLOCK_ORDER[index]);
     },
-    onReady(handler) { el.ready.addEventListener("click", handler); }
+    /**
+     * Assignment, not addEventListener: a new HUD is created per run against the same
+     * button, so adding would stack a handler per run and fire them all.
+     */
+    onReady(handler) { el.ready.onclick = handler; }
   };
 }

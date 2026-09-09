@@ -357,7 +357,15 @@ function resolvePaddle(state, ball, events) {
 
   if (ball.vy <= 0) return;
   if (ball.y + r < PADDLE_Y - halfH || ball.y - r > PADDLE_Y + halfH) return;
-  if (ball.x + r < paddle.x - halfW || ball.x - r > paddle.x + halfW) return;
+
+  // Horizontally this tests the ball's CENTRE, not its edge.
+  //
+  // Testing the edge (ball.x + r vs the paddle rim) made the paddle's effective width
+  // its drawn width plus a whole ball diameter — 3.56 cells against 3.0, ~19% wider
+  // than it looks. Balls that clearly appeared to be past the rim and heading for the
+  // gutter were still being returned, which is maddening in a game whose entire goal
+  // is getting past the paddle. The catch now matches what the player can see.
+  if (ball.x < paddle.x - halfW || ball.x > paddle.x + halfW) return;
 
   ball.y = PADDLE_Y - halfH - r;
 
